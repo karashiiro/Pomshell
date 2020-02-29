@@ -2,6 +2,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <Authors>karashiiro</Authors>
+    <Description>A linkshell management tool for FFXIV.</Description>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
@@ -29,5 +31,8 @@
     <EmbeddedResource Include="Views\LinkshellListView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Pomshell\Pomshell.csproj" />
   </ItemGroup>
 </Project>

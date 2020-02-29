@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="3.2.0-preview1.20073.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Pomshell\Pomshell.csproj" />
+    <ProjectReference Include="..\Client\Pomshell.Blazor.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Watch Include="..\**\*.razor" />
+    <Watch Include="..\**\*.scss" />
+    <Watch Include="..\**\*.cs" />
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,6 @@
 ﻿using Lumina.Excel.GeneratedSheets;
-using Microsoft.VisualBasic.FileIO;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -15,6 +15,8 @@ namespace Pomshell.Services
 
         private readonly Cyalume _cyalume;
         private readonly HttpClient _http;
+
+        private ushort _maxCraftedItemLevel;
 
         private readonly static string[] sqpack = {
             @"SquareEnix\FINAL FANTASY XIV - A Realm Reborn",
@@ -37,6 +39,8 @@ namespace Pomshell.Services
                 }
             }
             _http = http;
+
+            _maxCraftedItemLevel = 0;
         }
 
         /// <summary>
@@ -44,11 +48,15 @@ namespace Pomshell.Services
         /// </summary>
         public async Task<ushort> GetMaxCraftedItemLevel()
         {
+            if (_maxCraftedItemLevel != 0)
+            {
+                return _maxCraftedItemLevel;
+            }
             #region PC
             if (FoundSqpack)
             {
                 var items = _cyalume.GetExcelSheet<Item>();
-                return items.GetRows()
+                _maxCraftedItemLevel = items.GetRows()
                     .Where(item => item.CanBeHq)
                     .Max(item => item.LevelItem);
             }
@@ -56,30 +64,20 @@ namespace Pomshell.Services
             #region PS4
             else
             {
-                using var parser = new TextFieldParser(await _http.GetStringAsync(new Uri("https://raw.githubusercontent.com/xivapi/ffxiv-datamining/master/csv/Item.csv")));
-                parser.SetDelimiters(",");
-
-                ushort lastItemId = 0;
-                ushort lastLevelItem = 0;
-
-                for (int i = 0; i < 3; i++) parser.ReadFields(); // Get rid of the headers. Row 0 is the index row, row 1 is the field name row, and row 2 is the type row.
-                while (!parser.EndOfData)
+                // I'd rather not make a ton of XIVAPI requests and have to deal with rate-limiting, this is only run once, anyways.
+                var response = await _http.GetStringAsync(new Uri("https://raw.githubusercontent.com/xivapi/ffxiv-datamining/master/csv/Item.csv"));
+                string[] rows = response.Split('\n');
+                List<string[]> result = new List<string[]>();
+                foreach(string row in rows)
                 {
-                    string[] fields = parser.ReadFields();
-                    ushort itemId = ushort.Parse(fields[0]);
-                    ushort levelItem = ushort.Parse(fields[12]);
-                    bool canBeHq = Convert.ToBoolean(byte.Parse(fields[26]));
-
-                    if (canBeHq && levelItem > lastLevelItem)
-                    {
-                        lastItemId = itemId;
-                        lastLevelItem = levelItem;
-                    }
+                    result.Add(row.Split('\n'));
                 }
-
-                return lastItemId;
+                _maxCraftedItemLevel = result
+                    .Where(row => Convert.ToBoolean(row[26]))
+                    .Max(row => ushort.Parse(row[12]));
             }
             #endregion
+            return _maxCraftedItemLevel;
         }
 
         private static string ProgramFilesx86()
