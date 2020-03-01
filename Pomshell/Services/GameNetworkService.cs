@@ -5,6 +5,8 @@ namespace Pomshell.Services
 {
     public class GameNetworkService
     {
+        public bool CanParse { get; private set; } = true;
+
         public IEnumerable<LinkshellItem> GetLinkshells() => new[]
         {
             new LinkshellItem { Text = "Linkshell 1" },

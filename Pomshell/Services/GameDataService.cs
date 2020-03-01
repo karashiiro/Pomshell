@@ -11,7 +11,7 @@ namespace Pomshell.Services
 {
     public class GameDataService
     {
-        public bool FoundSqpack { get; private set; } = false;
+        public bool FoundSqpack { get; private set; } = true;
 
         private readonly Cyalume _cyalume;
         private readonly HttpClient _http;
@@ -52,7 +52,7 @@ namespace Pomshell.Services
             {
                 return _maxCraftedItemLevel;
             }
-            #region PC
+            
             if (FoundSqpack)
             {
                 var items = _cyalume.GetExcelSheet<Item>();
@@ -60,8 +60,6 @@ namespace Pomshell.Services
                     .Where(item => item.CanBeHq)
                     .Max(item => item.LevelItem);
             }
-            #endregion
-            #region PS4
             else
             {
                 // I'd rather not make a ton of XIVAPI requests and have to deal with rate-limiting, this is only run once, anyways.
@@ -70,13 +68,13 @@ namespace Pomshell.Services
                 List<string[]> result = new List<string[]>();
                 foreach(string row in rows)
                 {
-                    result.Add(row.Split('\n'));
+                    result.Add(row.Split(','));
                 }
                 _maxCraftedItemLevel = result
                     .Where(row => Convert.ToBoolean(row[26]))
                     .Max(row => ushort.Parse(row[12]));
             }
-            #endregion
+            
             return _maxCraftedItemLevel;
         }
 
