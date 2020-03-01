@@ -18,7 +18,7 @@ namespace Pomshell.Services
 
         private ushort _maxCraftedItemLevel;
 
-        private readonly static string[] sqpack = {
+        private readonly static string[] _gameFolders = {
             @"SquareEnix\FINAL FANTASY XIV - A Realm Reborn",
             @"FINAL FANTASY XIV - A Realm Reborn",
             @"SquareEnix\FINAL FANTASY XIV - KOREA",
@@ -29,7 +29,7 @@ namespace Pomshell.Services
 
         public GameDataService(HttpClient http)
         {
-            foreach (string folder in sqpack)
+            foreach (string folder in _gameFolders)
             {
                 if (Directory.Exists(Path.Combine(ProgramFilesx86(), folder, @"\game\sqpack")))
                 {

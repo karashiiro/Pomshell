@@ -11,7 +11,7 @@ namespace Pomshell.Services
 {
     public class XIVAPIService
     {
-        private static readonly string BASE_URL = "_https://xivapi.com";
+        private static readonly string BASE_URL = "https://xivapi.com";
 
         private readonly HttpClient _http;
 
