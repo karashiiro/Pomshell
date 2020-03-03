@@ -1,91 +1,48 @@
-﻿using Lumina.Excel.GeneratedSheets;
-using System;
-using System.Collections.Generic;
+﻿using Pomshell.Services.GameData;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Cyalume = Lumina.Lumina;
 
 namespace Pomshell.Services
 {
-    public class GameDataService
+    public class GameDataService : IGameDataProvider
     {
-        public bool FoundSqpack { get; private set; } = true;
+        // Used for frontend UI elements.
+        public bool FoundSqpack { get; private set; } = false;
 
-        private readonly Cyalume _cyalume;
+        /*
+         * I really don't want to deal with XIVAPI's slow speeds and rate-limiting, so in the event that exd
+         * data isn't available, we'll just parse the chonky CSV files instead. Sucks, but it's still faster
+         * than XIVAPI, and that load time only needs to be dealt with once rather than throughout the entire
+         * application use period.
+         */
+        private IGameDataProvider _dataProvider;
+
         private readonly HttpClient _http;
-
-        private ushort _maxCraftedItemLevel;
-
-        private readonly static string[] _gameFolders = {
-            @"SquareEnix\FINAL FANTASY XIV - A Realm Reborn",
-            @"FINAL FANTASY XIV - A Realm Reborn",
-            @"SquareEnix\FINAL FANTASY XIV - KOREA",
-            @"FINAL FANTASY XIV - KOREA",
-            @"上海数龙科技有限公司\最终幻想XIV",
-            @"最终幻想XIV",
-        };
 
         public GameDataService(HttpClient http)
         {
-            foreach (string folder in _gameFolders)
-            {
-                if (Directory.Exists(Path.Combine(ProgramFilesx86(), folder, @"\game\sqpack")))
-                {
-                    _cyalume = new Cyalume(folder);
-                    FoundSqpack = true;
-                    break;
-                }
-            }
             _http = http;
-
-            _maxCraftedItemLevel = 0;
+            ReloadProvider();
         }
+
+        public async Task<ushort> GetMaxCraftedItemLevel() => await _dataProvider.GetMaxCraftedItemLevel();
 
         /// <summary>
-        /// Gets the highest crafted battle gear item level.
+        /// Reload all <see cref="IGameDataProvider"/> objects. This will also clear provider caches.
         /// </summary>
-        public async Task<ushort> GetMaxCraftedItemLevel()
+        public void ReloadProvider()
         {
-            if (_maxCraftedItemLevel != 0)
+            try
             {
-                return _maxCraftedItemLevel;
+                _dataProvider = new LuminaProvider();
+                FoundSqpack = true;
             }
-            
-            if (FoundSqpack)
+            catch (DirectoryNotFoundException)
             {
-                var items = _cyalume.GetExcelSheet<Item>();
-                _maxCraftedItemLevel = items.GetRows()
-                    .Where(item => item.CanBeHq)
-                    .Max(item => item.LevelItem);
+                _dataProvider = new GithubRawProvider(_http);
+                FoundSqpack = false;
             }
-            else
-            {
-                // I'd rather not make a ton of XIVAPI requests and have to deal with rate-limiting, this is only run once, anyways.
-                var response = await _http.GetStringAsync(new Uri("https://raw.githubusercontent.com/xivapi/ffxiv-datamining/master/csv/Item.csv"));
-                string[] rows = response.Split('\n');
-                List<string[]> result = new List<string[]>();
-                foreach(string row in rows)
-                {
-                    result.Add(row.Split(','));
-                }
-                _maxCraftedItemLevel = result
-                    .Where(row => Convert.ToBoolean(row[26]))
-                    .Max(row => ushort.Parse(row[12]));
-            }
-            
-            return _maxCraftedItemLevel;
-        }
-
-        private static string ProgramFilesx86()
-        {
-            if (Environment.Is64BitOperatingSystem)
-            {
-                return Environment.GetEnvironmentVariable("ProgramFiles(x86)") ?? @"C:\Program Files (x86)";
-            }
-
-            return Environment.GetEnvironmentVariable("ProgramFiles") ?? @"C:\Program Files";
         }
     }
 }
