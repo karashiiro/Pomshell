@@ -27,6 +27,7 @@ namespace Pomshell.Services
         }
 
         public async Task<ushort> GetMaxCraftedItemLevel() => await _dataProvider.GetMaxCraftedItemLevel();
+        public async Task<ushort> GetItemLevel(ushort itemId) => await _dataProvider.GetItemLevel(itemId);
 
         /// <summary>
         /// Reload all <see cref="IGameDataProvider"/> objects. This will also clear provider caches.

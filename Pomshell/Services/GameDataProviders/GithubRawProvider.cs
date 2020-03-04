@@ -37,6 +37,14 @@ namespace Pomshell.Services.GameData
             return await Task.FromResult(_maxCraftedItemLevel);
         }
 
+        public async Task<ushort> GetItemLevel(ushort itemId)
+        {
+            Table table = await GetTable("https://raw.githubusercontent.com/xivapi/ffxiv-datamining/master/csv/Item.csv");
+            ushort id = 0;
+            var t = table.Where(row => ushort.TryParse(row[0], out id) && id == itemId);
+            return t.Any() ? id : new ushort();
+        }
+
         /// <summary>
         /// Requests a table, parses it, and caches it in the dictionary.
         /// </summary>

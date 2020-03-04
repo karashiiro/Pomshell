@@ -17,17 +17,17 @@ namespace Pomshell
         {
             long lastActivityTime = -1;
 
-            var gt = services.GetRequiredService<GarlandToolsService>();
+            var gameData = services.GetRequiredService<GameDataService>();
 
             if ((bool)fullCharacter["AchievementsPublic"]) foreach (AchievementEntry achievement in fullCharacter["Achievements"]["List"].Children().ToList() as IList<AchievementEntry>)
+            {
+                if (achievement.Date * 1000 > lastActivityTime)
                 {
-                    if (achievement.Date * 1000 > lastActivityTime)
-                    {
-                        lastActivityTime = achievement.Date * 1000;
-                    }
+                    lastActivityTime = achievement.Date * 1000;
                 }
+            }
 
-            foreach (MinionMountEntry minion in fullCharacter["Minions"].Children().ToList() as IList<MinionMountEntry>)
+            /*foreach (MinionMountEntry minion in fullCharacter["Minions"].Children().ToList() as IList<MinionMountEntry>)
             {
                 // Check against minions by patch
             }
@@ -35,13 +35,15 @@ namespace Pomshell
             foreach (MinionMountEntry mount in fullCharacter["Mounts"].Children().ToList() as IList<MinionMountEntry>)
             {
                 // Check against mounts by patch
-            }
+            }*/
 
             foreach (GearItem item in fullCharacter["Character"]["GearSet"]["Gear"].Children().ToList() as IList<GearItem>)
             {
-                if (item.Id == 0) // Check against gear by patch
+                var itemLevel = await gameData.GetItemLevel(item.Id);
+                if (itemLevel >= 480) // Check against gear by patch
                 {
-                    // lastActivityTime = time of patch release
+                    // https://xivapi.com/patchlist use this somehow
+                    lastActivityTime = (long)1582020000 * 1000;
                 }
             }
 

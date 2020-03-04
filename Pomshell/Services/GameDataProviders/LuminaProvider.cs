@@ -52,5 +52,15 @@ namespace Pomshell.Services.GameData
             
             return await Task.FromResult(_maxCraftedItemLevel);
         }
+
+        public async Task<ushort> GetItemLevel(ushort itemId)
+        {
+            var items = _cyalume.GetExcelSheet<Item>();
+            var item = items.GetRows()
+                .Where(row => row.RowId == itemId)
+                .DefaultIfEmpty(null)
+                .First();
+            return (ushort)await Task.FromResult(item != null ? item.RowId : 0);
+        }
     }
 }
