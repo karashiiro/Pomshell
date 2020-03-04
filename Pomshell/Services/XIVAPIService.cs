@@ -13,53 +13,10 @@ namespace Pomshell.Services
     {
         private static readonly string BASE_URL = "https://xivapi.com";
 
-        private readonly GameDataService _gameData;
         private readonly HttpClient _http;
 
-        public XIVAPIService(GameDataService gameData, HttpClient http)
-        {
-            _gameData = gameData;
-            _http = http;
-        }
-
-        public async Task<long> GetCharacterLastActivityTime(ulong id)
-        {
-            var character = await GetCharacter(id);
-            return await GetCharacterLastActivityTime(character);
-        }
-
-        public async Task<long> GetCharacterLastActivityTime(JObject fullCharacter)
-        {
-            long lastActivityTime = -1;
-
-            if ((bool)fullCharacter["AchievementsPublic"]) foreach (AchievementEntry achievement in fullCharacter["Achievements"]["List"].Children().ToList() as IList<AchievementEntry>)
-            { 
-                if (achievement.Date * 1000 > lastActivityTime)
-                {
-                    lastActivityTime = achievement.Date * 1000;
-                }
-            }
-
-            foreach (MinionMountEntry minion in fullCharacter["Minions"].Children().ToList() as IList<MinionMountEntry>)
-            {
-                // Check against minions by patch
-            }
-
-            foreach (MinionMountEntry mount in fullCharacter["Mounts"].Children().ToList() as IList<MinionMountEntry>)
-            {
-                // Check against mounts by patch
-            }
-
-            foreach (GearItem item in fullCharacter["Character"]["GearSet"]["Gear"].Children().ToList() as IList<GearItem>)
-            {
-                if (item.Id == 0) // Check against gear by patch
-                {
-                    // lastActivityTime = time of patch release
-                }
-            }
-
-            return await Task.FromResult(lastActivityTime);
-        }
+        public XIVAPIService(HttpClient http)
+            => _http = http;
 
         /// <summary>
         /// Gets a character from XIVAPI.

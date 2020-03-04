@@ -1,4 +1,5 @@
-﻿using Pomshell.Services;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Pomshell.Services;
 
 namespace Pomshell.ViewModels
 {
@@ -6,8 +7,9 @@ namespace Pomshell.ViewModels
     {
         public LinkshellListViewModel List { get; }
 
-        public MainWindowViewModel(GameNetworkService net)
+        public MainWindowViewModel(ServiceProvider services)
         {
+            var net = services.GetRequiredService<GameNetworkService>();
             List = new LinkshellListViewModel(net.GetLinkshells());
         }
     }
