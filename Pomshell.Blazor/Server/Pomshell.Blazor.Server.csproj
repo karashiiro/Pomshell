@@ -20,4 +20,8 @@
     <Watch Include="..\**\*.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>
