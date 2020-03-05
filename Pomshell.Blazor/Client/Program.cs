@@ -14,7 +14,7 @@ namespace Pomshell.Blazor.Client
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
-            builder.RootComponents.Add<App>("app");
+            builder.RootComponents.Add<App>("Pomshell");
 
             builder.Services
                 .AddSingleton<HttpClient>()

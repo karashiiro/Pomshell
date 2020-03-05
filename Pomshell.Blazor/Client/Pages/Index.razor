@@ -10,7 +10,7 @@ Please paste a linkshell or CWLS link in the field below, and then click the but
 @code {
     private string linkshellUrl;
 
-    private void ProcessLinkshell()
+    private async Task ProcessLinkshell()
     {
         if (Regex.Match(linkshellUrl, @"[^\d]").Success) // CWLS
         {
