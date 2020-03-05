@@ -19,6 +19,37 @@ namespace Pomshell.Services
             => _http = http;
 
         /// <summary>
+        /// Returns the release dates of a set of items.
+        /// </summary>
+        public async Task<IDictionary<ushort, long>> GetItemsReleaseDates(IEnumerable<ushort> items)
+        {
+            var output = new Dictionary<ushort, long>();
+
+            var query = "https://xivapi.com/Item?ids=";
+            query += items.Select(item => item.ToString()).Aggregate((item1, item2) => item1 + ',' + item2);
+            query += "&columns=ID,GamePatch.ReleaseDate";
+
+            int pageTotal = 1;
+            for (int i = 1; i < pageTotal; i++)
+            {
+                var response = JObject.Parse(await _http.GetStringAsync(new Uri($"query&page={i}")));
+                pageTotal = (int)response["Pagination"]["PageTotal"];
+                foreach (var child in response["Results"].Children())
+                {
+                    output.Add((ushort)child["ID"], (long)child["GamePatch"]["ReleaseDate"] * 1000);
+                }
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Gets the XIVAPI patch list.
+        /// </summary>
+        public async Task<IList<XIVAPIPatchList>> GetPatches()
+            => JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/patchlist"))).Children().ToList() as IList<XIVAPIPatchList>;
+
+        /// <summary>
         /// Gets a character from XIVAPI.
         /// </summary>
         /// <param name="id">The Lodestone ID of the character being queried.</param>

@@ -18,6 +18,7 @@ namespace Pomshell
             long lastActivityTime = -1;
 
             var gameData = services.GetRequiredService<GameDataService>();
+            var xivapi = services.GetRequiredService<XIVAPIService>();
 
             if ((bool)fullCharacter["AchievementsPublic"]) foreach (AchievementEntry achievement in fullCharacter["Achievements"]["List"].Children().ToList() as IList<AchievementEntry>)
             {
@@ -37,13 +38,14 @@ namespace Pomshell
                 // Check against mounts by patch
             }*/
 
-            foreach (GearItem item in fullCharacter["Character"]["GearSet"]["Gear"].Children().ToList() as IList<GearItem>)
+            // Check gear release times
+            var gearItems = fullCharacter["Character"]["GearSet"]["Gear"].Children().ToList() as IList<GearItem>;
+            var releaseDates = await xivapi.GetItemsReleaseDates(gearItems.Select(item => item.Id));
+            foreach (KeyValuePair<ushort, long> result in releaseDates)
             {
-                var itemLevel = await gameData.GetItemLevel(item.Id);
-                if (itemLevel >= 480) // Check against gear by patch
+                if (result.Value > lastActivityTime)
                 {
-                    // https://xivapi.com/patchlist use this somehow
-                    lastActivityTime = (long)1582020000 * 1000;
+                    lastActivityTime = result.Value;
                 }
             }
 
