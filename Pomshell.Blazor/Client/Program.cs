@@ -17,7 +17,6 @@ namespace Pomshell.Blazor.Client
             builder.RootComponents.Add<App>("Pomshell");
 
             builder.Services
-                .AddSingleton<HttpClient>()
                 .AddSingleton<GameDataService>()
                 .AddSingleton<XIVAPIService>();
 
