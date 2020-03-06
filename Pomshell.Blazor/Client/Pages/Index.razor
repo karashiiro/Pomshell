@@ -1,22 +1,52 @@
 ﻿@page "/"
+@inject XIVAPIService XIVAPI
 
 <h1>Linkshell Member Activity</h1>
 
 Please paste a linkshell or CWLS link in the field below, and then click the button to determine member activity.
 
-<input type="text" @bind-value="linkshellUrl"/>
+<input type="text" @bind-value="_linkshellUri"/>
 <button @onclick="ProcessLinkshell">Process</button>
+<p id="linkshell-search-failed" style="display:@_errorMessageDisplay">@_errorMessage</p>
 
 @code {
-    private string linkshellUrl;
+    private string _linkshellUri;
+    private string _errorMessageDisplay = "none";
+    private string _errorMessage = string.Empty;
 
     private async Task ProcessLinkshell()
     {
-        if (Regex.Match(linkshellUrl, @"[^\d]").Success) // CWLS
+        string linkshellId = Util.GetEndOfUriPath(_linkshellUri);
+
+        try
         {
+            new Uri(_linkshellUri);
+        }
+        catch (UriFormatException)
+        {
+            _errorMessage = "Failed to resolve URI to a linkshell.";
+            _errorMessageDisplay = "inline";
+            return;
+        }
+
+        IEnumerable<CharacterSearchResult> results;
+
+        if (Regex.Match(_linkshellUri, @"[^\d]").Success) // CWLS
+        {
+            results = await XIVAPI.GetCWLSMembers(linkshellId);
         }
         else // Linkshell
         {
+            results = await XIVAPI.GetLinkshellMembers(linkshellId);
         }
+
+        if (!results.Any())
+        {
+            _errorMessage = "Failed to resolve URI to a linkshell.";
+            _errorMessageDisplay = "inline";
+            return;
+        }
+
+        _errorMessageDisplay = "none";
     }
 }

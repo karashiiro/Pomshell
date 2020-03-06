@@ -60,7 +60,7 @@ namespace Pomshell.Services
         /// Gets a linkshell's members from XIVAPI.
         /// </summary>
         /// <param name="id">The Lodestone ID of the linkshell being queried.</param>
-        public async Task<IList<CharacterSearchResult>> GetLinkshellMembers(ulong id)
+        public async Task<IList<CharacterSearchResult>> GetLinkshellMembers(string id)
         {
             var generics = Enumerable.Empty<JToken>();
             int pageTotal = 1;
@@ -78,7 +78,7 @@ namespace Pomshell.Services
         /// Gets a CWLS's members from XIVAPI.
         /// </summary>
         /// <param name="id">The Lodestone ID of the CWLS being queried.</param>
-        public async Task<IList<CharacterSearchResult>> GetCWLSMembers(ulong id)
+        public async Task<IList<CharacterSearchResult>> GetCWLSMembers(string id)
         {
             var generics = Enumerable.Empty<JToken>();
             int pageTotal = 1;

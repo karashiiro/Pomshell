@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Pomshell
 {
@@ -12,6 +15,12 @@ namespace Pomshell
             }
 
             return Environment.GetEnvironmentVariable("ProgramFiles") ?? @"C:\Program Files";
+        }
+
+        public static string GetEndOfUriPath(string uri)
+        {
+            var things = new List<string>(Regex.Split(uri, @"\/").Where(str => str != string.Empty));
+            return things[things.Count() - 1];
         }
     }
 }

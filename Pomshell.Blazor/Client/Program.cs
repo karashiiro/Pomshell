@@ -5,7 +5,6 @@ using System.Text;
 using Microsoft.AspNetCore.Blazor.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Pomshell.Services;
-using System.Net.Http;
 
 namespace Pomshell.Blazor.Client
 {
