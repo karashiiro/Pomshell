@@ -1,0 +1,17 @@
+﻿<div class="character-card">
+    <table class="character-card-language">
+        <tr>
+            @foreach (var lang in Util.BuildLanguageArray(Character.Lang)) {
+                <td>@lang</td>
+            }
+        </tr>
+    </table>
+    <img src="@Character.Avatar"/>
+    <a target="_blank" href="@Util.BuildLodestoneUrl(Character.ID)"><span>@Character.Name</span></a>
+    <span>@Character.Server</span>
+</div>
+
+@code {
+    [Parameter]
+    public CharacterSearchResult Character { get; set; }
+}
