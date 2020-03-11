@@ -7,7 +7,7 @@ Please paste a linkshell or CWLS link in the field below, and then click the but
 <input type="text" @bind-value="_linkshellUri" />
 <button @onclick="ProcessLinkshell">Process</button>
 <p id="linkshell-search-failed" style="display:@_errorMessageDisplay">@_errorMessage</p>
-<CharacterCardGrid Characters="@_results"></CharacterCardGrid>
+<!--<CharacterCardGrid Characters="@_results"></CharacterCardGrid>-->
 
 @code {
     private string _linkshellUri;
