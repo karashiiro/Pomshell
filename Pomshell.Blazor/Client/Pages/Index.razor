@@ -1,11 +1,10 @@
 ﻿@page "/"
 @inject XIVAPIService XIVAPI
-
 <h1>Linkshell Member Activity</h1>
 
 Please paste a linkshell or CWLS link in the field below, and then click the button to determine member activity.
 
-<input type="text" @bind-value="_linkshellUri"/>
+<input type="text" @bind-value="_linkshellUri" />
 <button @onclick="ProcessLinkshell">Process</button>
 <p id="linkshell-search-failed" style="display:@_errorMessageDisplay">@_errorMessage</p>
 <CharacterCardGrid Characters="@_results"></CharacterCardGrid>
@@ -32,7 +31,7 @@ Please paste a linkshell or CWLS link in the field below, and then click the but
             return;
         }
 
-        if (Regex.Match(_linkshellUri, @"[^\d]").Success) // CWLS
+        if (Regex.Match(linkshellId, @"[^\d]").Success) // CWLS
         {
             _results = await XIVAPI.GetCWLSMembers(linkshellId);
         }
