@@ -1,13 +1,12 @@
 ﻿<div class="character-card">
-    <table class="character-card-language">
-        <tr>
+    <div class="character-card-language">
             @foreach (var lang in Util.BuildLanguageArray(Character.Lang)) {
-                <td>@lang</td>
+                string iconName = lang + ".png";
+                <img class="@lang" src="~/i/@iconName"/>
             }
-        </tr>
-    </table>
-    <img src="@Character.Avatar"/>
-    <a target="_blank" href="@Util.BuildLodestoneUrl(Character.ID)"><span>@Character.Name</span></a>
+    </div>
+    <span><img src="@Character.Avatar"/></span>
+    <span><a target="_blank" href="@Util.BuildLodestoneUrl(Character.ID)">@Character.Name</a></span>
     <span>@Character.Server</span>
 </div>
 
