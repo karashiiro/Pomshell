@@ -1,0 +1,11 @@
+﻿<div class="character-card-grid">
+    @foreach (var character in Characters)
+    {
+        <CharacterCard Character="@character"></CharacterCard>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<CharacterSearchResult> Characters { get; set; }
+}
