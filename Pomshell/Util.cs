@@ -27,10 +27,12 @@ namespace Pomshell
         /// </summary>
         public static string[] BuildLanguageArray(string languages)
         {
+            if (languages == null)
+                return new string[] { "none", "none", "none", "none" };
             string[] langsChecked = CompiledRegexes.ForwardSlashes.Split(languages);
             string[] output = { "JA", "EN", "FR", "DE" };
             for (byte i = 0; i < 4; i++)
-                if (!output[i].Equals(langsChecked[i]))
+                if (Array.IndexOf(langsChecked, output[i]) == -1)
                     output[i] = "none";
             return output;
         }
@@ -40,6 +42,18 @@ namespace Pomshell
             var things = new List<string>(CompiledRegexes.ForwardSlashes.Split(uri).Where(str => str != string.Empty));
             return things[things.Count() - 1];
         }
+
+        public static string GetWorld(string worldWithDataCenter)
+            => worldWithDataCenter.Substring(0, worldWithDataCenter.IndexOf("(") - 1);
+
+        public static DateTime GetLocalDateTime(long binary)
+            => TimeZoneInfo.ConvertTimeFromUtc(DateTime.FromBinary(binary), TimeZoneInfo.Local);
+
+        public static string DefaultIfNull(this string input, string defaultValue)
+            => input ?? defaultValue;
+
+        public static string EmptyIfNull(this string input)
+            => input ?? string.Empty;
 
         public static char ToUpper(this char input)
             => char.ToUpper(input);

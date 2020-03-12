@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Pomshell.Models;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace Pomshell.Services
             query += "&columns=ID,GamePatch.ReleaseDate";
 
             int pageTotal = 1;
-            for (int i = 1; i < pageTotal; i++)
+            for (int i = 1; i <= pageTotal; i++)
             {
                 var response = JObject.Parse(await _http.GetStringAsync(new Uri($"query&page={i}")));
                 pageTotal = (int)response["Pagination"]["PageTotal"];
@@ -62,16 +63,19 @@ namespace Pomshell.Services
         /// <param name="id">The Lodestone ID of the linkshell being queried.</param>
         public async Task<IList<CharacterSearchResult>> GetLinkshellMembers(string id)
         {
-            var generics = Enumerable.Empty<JToken>();
+            var characters = new List<CharacterSearchResult>();
             int pageTotal = 1;
-            for (int i = 1; i < pageTotal; i++)
+            for (int i = 1; i <= pageTotal; i++)
             {
                 JToken res = JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/linkshell/{id}?page={i}")))["Linkshell"];
                 pageTotal = (int)res["Pagination"]["PageTotal"];
-                generics.Concat(res["Results"].Children());
+                foreach (var child in res["Results"].Children().ToList())
+                {
+                    characters.Add(child.ToObject<CharacterSearchResult>());
+                }
             }
             // Distinct() handles the edge case in which the list is updated as it's being fetched.
-            return generics.Distinct().ToList() as IList<CharacterSearchResult>;
+            return characters.Distinct().ToList();
         }
 
         /// <summary>
@@ -80,15 +84,18 @@ namespace Pomshell.Services
         /// <param name="id">The Lodestone ID of the CWLS being queried.</param>
         public async Task<IList<CharacterSearchResult>> GetCWLSMembers(string id)
         {
-            var generics = Enumerable.Empty<JToken>();
+            var characters = new List<CharacterSearchResult>();
             int pageTotal = 1;
-            for (int i = 1; i < pageTotal; i++)
+            for (int i = 1; i <= pageTotal; i++)
             {
                 JToken res = JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/linkshell/crossworld/{id}?page={i}")))["Linkshell"];
                 pageTotal = (int)res["Pagination"]["PageTotal"];
-                generics.Concat(res["Results"].Children());
+                foreach (var child in res["Results"].Children().ToList())
+                {
+                    characters.Add(child.ToObject<CharacterSearchResult>());
+                }
             }
-            return generics.Distinct().ToList() as IList<CharacterSearchResult>;
+            return characters.Distinct().ToList();
         }
 
         /// <summary>

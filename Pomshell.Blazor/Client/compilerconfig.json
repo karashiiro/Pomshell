@@ -1,0 +1,10 @@
+﻿[
+  {
+    "outputFile": "wwwroot/css/component/CharacterCard.css",
+    "inputFile": "Components/CharacterCard.razor.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/component/CharacterCardGrid.css",
+    "inputFile": "Components/CharacterCardGrid.razor.scss"
+  }
+]

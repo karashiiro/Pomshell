@@ -7,31 +7,30 @@ Please paste a linkshell or CWLS link in the field below, and then click the but
 <input type="text" @bind-value="_linkshellUri" />
 <button @onclick="ProcessLinkshell">Process</button>
 <p id="linkshell-search-failed" style="display:@_errorMessageDisplay">@_errorMessage</p>
-<!--<CharacterCardGrid Characters="@_results"></CharacterCardGrid>-->
+<CharacterCardGrid Characters="@_results"></CharacterCardGrid>
 
 @code {
     private string _linkshellUri;
     private string _errorMessageDisplay = "none";
     private string _errorMessage = string.Empty;
 
-    private IEnumerable<CharacterSearchResult> _results;
+    private IEnumerable<CharacterSearchResult> _results = Enumerable.Empty<CharacterSearchResult>();
 
     private async Task ProcessLinkshell()
     {
+        if (_linkshellUri == null)
+            return;
+
         string linkshellId = Util.GetEndOfUriPath(_linkshellUri);
 
-        try
-        {
-            new Uri(_linkshellUri);
-        }
-        catch (UriFormatException)
+        if (!Uri.IsWellFormedUriString(_linkshellUri, UriKind.Absolute))
         {
             _errorMessage = "Failed to resolve URI to a linkshell.";
             _errorMessageDisplay = "inline";
             return;
         }
-
-        if (Regex.Match(linkshellId, @"[^\d]").Success) // CWLS
+        
+        if (CompiledRegexes.NoDigits.Match(linkshellId).Success) // CWLS
         {
             _results = await XIVAPI.GetCWLSMembers(linkshellId);
         }
