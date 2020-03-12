@@ -46,9 +46,6 @@ namespace Pomshell
         public static string GetWorld(string worldWithDataCenter)
             => worldWithDataCenter.Substring(0, worldWithDataCenter.IndexOf("(") - 1);
 
-        public static DateTime GetLocalDateTime(long binary)
-            => TimeZoneInfo.ConvertTimeFromUtc(DateTime.FromBinary(binary), TimeZoneInfo.Local);
-
         public static string DefaultIfNull(this string input, string defaultValue)
             => input ?? defaultValue;
 

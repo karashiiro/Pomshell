@@ -12,10 +12,13 @@
     <p class="name"><a target="_blank" href="@Util.BuildLodestoneUrl(Character.ID)">@Character.Name</a></p>
     <p class="world">@Util.GetWorld(Character.Server)</p>
     <!--Make this actually convert the time at some point-->
-    <p class="last-seen">@Util.GetLocalDateTime(DateTime.Now.ToBinary()).ToString("d/M/yyy\"\n\"H:mm")</p>
+    <p class="last-seen">@BinaryDateTimeAsString(Pipelines.GetCharacterLastActivityTime(Character))</p>
 </div>
 
 @code {
     [Parameter]
     public CharacterSearchResult Character { get; set; }
+
+    public static string BinaryDateTimeAsString(long binary)
+        => DateTime.FromBinary(binary).ToLocalTime().ToString("d/M/yyy\"\n\"H:mm");
 }

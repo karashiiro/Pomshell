@@ -2,7 +2,6 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Pomshell.Blazor.Client.Storage;
 using Pomshell.Services;
 using Pomshell.Storage;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
@@ -31,6 +30,7 @@ namespace Pomshell.Blazor.Client
             await builder
                 .Build()
                 .UseLoadingBar()
+                .UseLocalTimeZone()
                 .RunAsync();
         }
     }
