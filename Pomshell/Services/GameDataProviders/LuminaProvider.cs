@@ -1,4 +1,6 @@
 ﻿using Lumina.Excel.GeneratedSheets;
+using Pomshell.Storage;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,9 +21,10 @@ namespace Pomshell.Services.GameData
             @"最终幻想XIV",
         };
 
+        private ICacheLayer _cache;
         private ushort _maxCraftedItemLevel;
 
-        public LuminaProvider()
+        public LuminaProvider(ICacheLayer cache)
         {
             foreach (string folder in _gameFolders)
             {
@@ -37,8 +40,12 @@ namespace Pomshell.Services.GameData
                 throw new DirectoryNotFoundException("sqpack folder not found!");
             }
 
+            _cache = cache;
             _maxCraftedItemLevel = 0;
         }
+
+        public void RebuildCache<T>() where T : ICacheLayer
+            => _cache = Activator.CreateInstance<T>();
 
         public async Task<ushort> GetMaxCraftedItemLevel()
         {

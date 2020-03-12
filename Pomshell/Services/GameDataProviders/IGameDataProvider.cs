@@ -1,9 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using Pomshell.Storage;
+using System.Threading.Tasks;
 
 namespace Pomshell.Services.GameData
 {
     public interface IGameDataProvider
     {
+        /// <summary>
+        /// Creates a cache on the provider, deleting any existing cache.
+        /// </summary>
+        void RebuildCache<T>() where T : ICacheLayer;
+
         /// <summary>
         /// Gets the highest crafted battle gear item level.
         /// </summary>

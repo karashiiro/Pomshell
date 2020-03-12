@@ -1,4 +1,5 @@
-﻿using Pomshell.Services.GameData;
+﻿using Pomshell.Storage;
+using Pomshell.Services.GameData;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -19,12 +20,16 @@ namespace Pomshell.Services
         private IGameDataProvider _dataProvider;
 
         private readonly HttpClient _http;
+        private readonly ICacheLayer _cache;
 
-        public GameDataService(HttpClient http)
+        public GameDataService(HttpClient http, ICacheLayer cache)
         {
             _http = http;
+            _cache = cache;
             ReloadProvider();
         }
+
+        public void RebuildCache<T>() where T : ICacheLayer => _dataProvider.RebuildCache<T>();
 
         public async Task<ushort> GetMaxCraftedItemLevel() => await _dataProvider.GetMaxCraftedItemLevel();
         public async Task<ushort> GetItemLevel(ushort itemId) => await _dataProvider.GetItemLevel(itemId);
@@ -36,12 +41,12 @@ namespace Pomshell.Services
         {
             try
             {
-                _dataProvider = new LuminaProvider();
+                _dataProvider = new LuminaProvider(_cache);
                 FoundSqpack = true;
             }
             catch (DirectoryNotFoundException)
             {
-                _dataProvider = new GithubRawProvider(_http);
+                _dataProvider = new GithubRawProvider(_http, _cache);
                 FoundSqpack = false;
             }
         }

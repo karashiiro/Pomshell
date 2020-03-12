@@ -13,7 +13,7 @@ namespace Pomshell.Blazor.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddControllersWithViews();
             services.AddResponseCompression(opts =>
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -29,18 +29,25 @@ namespace Pomshell.Blazor.Server
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseBlazorDebugging();
+                app.UseWebAssemblyDebugging();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
+            app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
-            app.UseClientSideBlazorFiles<Client.Program>();
 
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapDefaultControllerRoute();
-                endpoints.MapFallbackToClientSideBlazor<Client.Program>("index.html");
+                endpoints.MapControllers();
+                endpoints.MapFallbackToFile("index.html");
             });
         }
     }

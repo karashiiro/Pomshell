@@ -1,7 +1,11 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Blazor.Hosting;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Pomshell.Blazor.Client.Storage;
 using Pomshell.Services;
+using Pomshell.Storage;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace Pomshell.Blazor.Client
 {
@@ -12,11 +16,22 @@ namespace Pomshell.Blazor.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
 
+            builder.Services.AddBaseAddressHttpClient();
+
+            // This loading bar is kind of cute
+            builder.Services.AddLoadingBar();
+
+            builder.Services.AddBlazoredLocalStorage();
+
             builder.Services
+                .AddSingleton<MemoryOnlyCacheLayer>()
                 .AddSingleton<GameDataService>()
                 .AddSingleton<XIVAPIService>();
-
-            await builder.Build().RunAsync();
+            
+            await builder
+                .Build()
+                .UseLoadingBar()
+                .RunAsync();
         }
     }
 }

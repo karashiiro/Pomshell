@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Pomshell.Storage;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -11,18 +12,19 @@ namespace Pomshell.Services.GameData
     {
         private readonly HttpClient _http;
 
-        private readonly IDictionary<string, Table> _tables;
-
+        private ICacheLayer _cache;
         private ushort _maxCraftedItemLevel;
 
-        public GithubRawProvider(HttpClient http)
+        public GithubRawProvider(HttpClient http, ICacheLayer cache)
         {
             _http = http;
-
-            _tables = new Dictionary<string, Table>();
+            _cache = cache;
 
             _maxCraftedItemLevel = 0;
         }
+
+        public void RebuildCache<T>() where T : ICacheLayer
+            => _cache = Activator.CreateInstance<T>();
 
         public async Task<ushort> GetMaxCraftedItemLevel()
         {
@@ -50,7 +52,7 @@ namespace Pomshell.Services.GameData
         /// </summary>
         private async Task<Table> GetTable(string uri)
         {
-            if (!_tables.ContainsKey(uri))
+            if (!await _cache.Contains(uri))
             {
                 var response = await _http.GetStringAsync(new Uri(uri));
                 string[] rows = response.Split('\n');
@@ -59,9 +61,9 @@ namespace Pomshell.Services.GameData
                 {
                     table.Add(row.Split(',').ToList());
                 }
-                _tables.Add(uri, table);
+                await _cache.SetItem(uri, table);
             }
-            return _tables[uri];
+            return await _cache.GetItem<Table>(uri);
         }
     }
 }
