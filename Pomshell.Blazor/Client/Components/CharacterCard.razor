@@ -1,4 +1,6 @@
-﻿<div class="character-card">
+﻿@inject GameDataService gds;
+@inject XIVAPIService xivapi;
+<div class="character-card">
     <div>
         @foreach (var lang in Util.BuildLanguageArray(Character.Lang))
         {
@@ -11,8 +13,7 @@
     </div>
     <p class="name"><a target="_blank" href="@Util.BuildLodestoneUrl(Character.ID)">@Character.Name</a></p>
     <p class="world">@Util.GetWorld(Character.Server)</p>
-    <!--Make this actually convert the time at some point-->
-    <p class="last-seen">@BinaryDateTimeAsString(Pipelines.GetCharacterLastActivityTime(Character))</p>
+    <p class="last-seen">@BinaryDateTimeAsString(Pipelines.GetCharacterLastActivityTime(gds, xivapi, Character.ID).Result)</p>
 </div>
 
 @code {

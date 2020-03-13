@@ -10,15 +10,12 @@ namespace Pomshell
 {
     public static class Pipelines
     {
-        public static async Task<long> GetCharacterLastActivityTime(ServiceProvider services, ulong id)
-            => await GetCharacterLastActivityTime(services, await services.GetRequiredService<XIVAPIService>().GetCharacter(id));
+        public static async Task<long> GetCharacterLastActivityTime(GameDataService gameData, XIVAPIService xivapi, ulong id)
+            => await GetCharacterLastActivityTime(gameData, xivapi, await xivapi.GetCharacter(id));
 
-        public static async Task<long> GetCharacterLastActivityTime(ServiceProvider services, JObject fullCharacter)
+        public static async Task<long> GetCharacterLastActivityTime(GameDataService gameData, XIVAPIService xivapi, JObject fullCharacter)
         {
             long lastActivityTime = -1;
-
-            var gameData = services.GetRequiredService<GameDataService>();
-            var xivapi = services.GetRequiredService<XIVAPIService>();
 
             if ((bool)fullCharacter["AchievementsPublic"]) foreach (AchievementEntry achievement in fullCharacter["Achievements"]["List"].Children().ToList() as IList<AchievementEntry>)
             {
