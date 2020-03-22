@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using Pomshell.Models;
 using System;
 using System.Collections.Generic;
@@ -16,8 +15,16 @@ namespace Pomshell.Services
 
         private readonly HttpClient _http;
 
+        private readonly Queue<PendingRequest> _requests;
+        private readonly Task _runningTask;
+
         public XIVAPIService(HttpClient http)
-            => _http = http;
+        {
+            _http = http;
+
+            _requests = new Queue<PendingRequest>();
+            _runningTask = ExecuteRequests();
+        }
 
         /// <summary>
         /// Returns the release dates of a set of items.
@@ -33,7 +40,7 @@ namespace Pomshell.Services
             int pageTotal = 1;
             for (int i = 1; i <= pageTotal; i++)
             {
-                var response = JObject.Parse(await _http.GetStringAsync(new Uri($"query&page={i}")));
+                var response = JObject.Parse(await MakeRequest($"{query}&page={i}"));
                 pageTotal = (int)response["Pagination"]["PageTotal"];
                 foreach (var child in response["Results"].Children())
                 {
@@ -48,14 +55,14 @@ namespace Pomshell.Services
         /// Gets the XIVAPI patch list.
         /// </summary>
         public async Task<IList<XIVAPIPatchList>> GetPatches()
-            => JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/patchlist"))).Children().ToList() as IList<XIVAPIPatchList>;
+            => JObject.Parse(await MakeRequest($"{BASE_URL}/patchlist")).Children().ToList() as IList<XIVAPIPatchList>;
 
         /// <summary>
         /// Gets a character from XIVAPI.
         /// </summary>
         /// <param name="id">The Lodestone ID of the character being queried.</param>
         public async Task<JObject> GetCharacter(ulong id)
-            => JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/character/{id}?data=AC,MiMo")));
+            => JObject.Parse(await MakeRequest($"{BASE_URL}/character/{id}?data=AC,MiMo"));
 
         /// <summary>
         /// Gets a linkshell's members from XIVAPI.
@@ -67,7 +74,7 @@ namespace Pomshell.Services
             int pageTotal = 1;
             for (int i = 1; i <= pageTotal; i++)
             {
-                JToken res = JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/linkshell/{id}?page={i}")))["Linkshell"];
+                JToken res = JObject.Parse(await MakeRequest($"{BASE_URL}/linkshell/{id}?page={i}"))["Linkshell"];
                 pageTotal = (int)res["Pagination"]["PageTotal"];
                 foreach (var child in res["Results"].Children().ToList())
                 {
@@ -88,7 +95,7 @@ namespace Pomshell.Services
             int pageTotal = 1;
             for (int i = 1; i <= pageTotal; i++)
             {
-                JToken res = JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/linkshell/crossworld/{id}?page={i}")))["Linkshell"];
+                JToken res = JObject.Parse(await MakeRequest($"{BASE_URL}/linkshell/crossworld/{id}?page={i}"))["Linkshell"];
                 pageTotal = (int)res["Pagination"]["PageTotal"];
                 foreach (var child in res["Results"].Children().ToList())
                 {
@@ -107,7 +114,7 @@ namespace Pomshell.Services
         {
             try
             {
-                IList<JToken> generics = JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/character/search?name={name}&server={server}")))["Results"]
+                IList<JToken> generics = JObject.Parse(await MakeRequest($"{BASE_URL}/character/search?name={name}&server={server}"))["Results"]
                     .Children()
                     .ToList();
                 return (generics as IList<CharacterSearchResult>).Single(result => result.Name == name && result.Server == server);
@@ -125,7 +132,7 @@ namespace Pomshell.Services
         /// <param name="server">The server of the linkshell.</param>
         public async Task<LinkshellSearchResult> SearchLinkshell(string name, string server)
         {
-            var res = (IList<LinkshellSearchResult>)JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/linkshell/search?name={name}&server={server}")))["Results"]
+            var res = (IList<LinkshellSearchResult>)JObject.Parse(await MakeRequest($"{BASE_URL}/linkshell/search?name={name}&server={server}"))["Results"]
                 .Children()
                 .ToList();
             foreach (var entry in res)
@@ -145,7 +152,7 @@ namespace Pomshell.Services
         /// <param name="server">The server of the CWLS.</param>
         public async Task<LinkshellSearchResult> SearchCWLS(string name, string server)
         {
-            var res = (IList<LinkshellSearchResult>)JObject.Parse(await _http.GetStringAsync(new Uri($"{BASE_URL}/linkshell/crossworld/search?name={name}&server={server}")))["Results"]
+            var res = (IList<LinkshellSearchResult>)JObject.Parse(await MakeRequest($"{BASE_URL}/linkshell/crossworld/search?name={name}&server={server}"))["Results"]
                 .Children()
                 .ToList();
             foreach (var entry in res)
@@ -156,6 +163,55 @@ namespace Pomshell.Services
                 }
             }
             throw new XIVAPIDataNotFoundException();
+        }
+
+        private async Task<string> MakeRequest(string uri)
+        {
+            var request = new PendingRequest
+            {
+                ObjectId = new Uri(uri),
+            };
+            _requests.Enqueue(request);
+            while (request.Result == null)
+                await Task.Delay(1000);
+            return request.Result;
+        }
+
+        private async Task ExecuteRequests()
+        {
+            while (true)
+            {
+                if (_requests.Count != 0)
+                {
+                    Parallel.For(0, _requests.Count, async (i, state) =>
+                    {
+                        var request = _requests.Dequeue();
+                        string response = null;
+                        while (response == null)
+                        {
+                            try
+                            {
+                                response = await _http.GetStringAsync(request.ObjectId);
+                            }
+                            catch (HttpRequestException)
+                            {
+                                await Task.Delay(500);
+                            }
+                        }
+                        request.Result = response;
+                    });
+                }
+                else
+                {
+                    await Task.Delay(1000);
+                }
+            }
+        }
+
+        private class PendingRequest
+        {
+            public Uri ObjectId;
+            public string Result;
         }
     }
 

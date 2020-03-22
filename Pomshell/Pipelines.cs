@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using Pomshell.Models;
 using Pomshell.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +10,8 @@ namespace Pomshell
 {
     public static class Pipelines
     {
+        private static readonly string[] _gearPieces = { "Body", "Bracelets", "Earrings", "Feet", "Hands", "Legs", "MainHand", "Necklace", "OffHand", "Ring1", "Ring2", "Waist" };
+
         public static async Task<long> GetCharacterLastActivityTime(GameDataService gameData, XIVAPIService xivapi, ulong id)
             => await GetCharacterLastActivityTime(gameData, xivapi, await xivapi.GetCharacter(id));
 
@@ -17,7 +19,7 @@ namespace Pomshell
         {
             long lastActivityTime = -1;
 
-            if ((bool)fullCharacter["AchievementsPublic"]) foreach (AchievementEntry achievement in fullCharacter["Achievements"]["List"].Children().ToList() as IList<AchievementEntry>)
+            if (fullCharacter["AchievementsPublic"].ToObject<bool>()) foreach (AchievementEntry achievement in fullCharacter["Achievements"]["List"].Children().ToList() as IList<AchievementEntry>)
             {
                 if (achievement.Date * 1000 > lastActivityTime)
                 {
@@ -36,8 +38,16 @@ namespace Pomshell
             }*/
 
             // Check gear release times
-            var gearItems = fullCharacter["Character"]["GearSet"]["Gear"].Children().ToList() as IList<GearItem>;
-            var releaseDates = await xivapi.GetItemsReleaseDates(gearItems.Select(item => item.Id));
+            List<GearItem> gearItems = new List<GearItem>();
+            var gearItemsRaw = fullCharacter["Character"]["GearSet"]["Gear"];
+            foreach (string piece in _gearPieces)
+            {
+                gearItems.Add(gearItemsRaw[piece].ToObject<GearItem>());
+            }
+            var releaseDates = await xivapi.GetItemsReleaseDates(gearItems
+                .Where(item => item.ID != null)
+                .Select(item => (ushort)item.ID));
+            Console.WriteLine("Success!");
             foreach (KeyValuePair<ushort, long> result in releaseDates)
             {
                 if (result.Value > lastActivityTime)

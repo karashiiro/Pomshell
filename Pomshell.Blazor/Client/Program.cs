@@ -17,13 +17,12 @@ namespace Pomshell.Blazor.Client
 
             builder.Services.AddBaseAddressHttpClient();
 
+            builder.Services.AddBlazoredLocalStorage();
             // This loading bar is kind of cute
             builder.Services.AddLoadingBar();
 
-            builder.Services.AddBlazoredLocalStorage();
-
             builder.Services
-                .AddSingleton<MemoryOnlyCacheLayer>()
+                .AddSingleton<ICacheLayer, MemoryOnlyCacheLayer>()
                 .AddSingleton<GameDataService>()
                 .AddSingleton<XIVAPIService>();
             

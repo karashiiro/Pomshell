@@ -13,12 +13,22 @@
     </div>
     <p class="name"><a target="_blank" href="@Util.BuildLodestoneUrl(Character.ID)">@Character.Name</a></p>
     <p class="world">@Util.GetWorld(Character.Server)</p>
-    <p class="last-seen">@BinaryDateTimeAsString(Pipelines.GetCharacterLastActivityTime(gds, xivapi, Character.ID).Result)</p>
+    <p class="last-seen">@_timeState</p>
 </div>
 
 @code {
     [Parameter]
     public CharacterSearchResult Character { get; set; }
+
+    private string _timeState = "Loading...";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+        long time = await Pipelines.GetCharacterLastActivityTime(gds, xivapi, Character.ID);
+        _timeState = BinaryDateTimeAsString(time);
+    }
 
     public static string BinaryDateTimeAsString(long binary)
         => DateTime.FromBinary(binary).ToLocalTime().ToString("d/M/yyy\"\n\"H:mm");
