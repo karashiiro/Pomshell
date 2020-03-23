@@ -10,7 +10,7 @@ namespace Pomshell
 {
     public static class Pipelines
     {
-        private static readonly string[] _gearPieces = { "Body", "Bracelets", "Earrings", "Feet", "Hands", "Legs", "MainHand", "Necklace", "OffHand", "Ring1", "Ring2", "Waist" };
+        private static readonly string[] _gearPieces = { "Body", "Bracelets", "Earrings", "Feet", "Hands", "Legs", "MainHand", "Necklace", "SoulCrytal", "OffHand", "Ring1", "Ring2", "Waist" };
 
         public static async Task<long> GetCharacterLastActivityTime(GameDataService gameData, XIVAPIService xivapi, ulong id)
             => await GetCharacterLastActivityTime(gameData, xivapi, await xivapi.GetCharacter(id));
@@ -19,7 +19,7 @@ namespace Pomshell
         {
             long lastActivityTime = -1;
 
-            if (fullCharacter["AchievementsPublic"].ToObject<bool>()) foreach (AchievementEntry achievement in fullCharacter["Achievements"]["List"].Children().ToList() as IList<AchievementEntry>)
+            if (fullCharacter["AchievementsPublic"].ToObject<bool>()) foreach (AchievementEntry achievement in fullCharacter["Achievements"]["List"].ToObject<IList<AchievementEntry>>())
             {
                 if (achievement.Date * 1000 > lastActivityTime)
                 {
@@ -42,12 +42,13 @@ namespace Pomshell
             var gearItemsRaw = fullCharacter["Character"]["GearSet"]["Gear"];
             foreach (string piece in _gearPieces)
             {
+                if (gearItemsRaw.SelectToken(piece) == null)
+                    continue;
                 gearItems.Add(gearItemsRaw[piece].ToObject<GearItem>());
             }
             var releaseDates = await xivapi.GetItemsReleaseDates(gearItems
                 .Where(item => item.ID != null)
                 .Select(item => (ushort)item.ID));
-            Console.WriteLine("Success!");
             foreach (KeyValuePair<ushort, long> result in releaseDates)
             {
                 if (result.Value > lastActivityTime)
@@ -55,7 +56,7 @@ namespace Pomshell
                     lastActivityTime = result.Value;
                 }
             }
-
+            
             return await Task.FromResult(lastActivityTime);
         }
     }
